@@ -2,10 +2,10 @@ import pygame, sys, time, random
 
 
 # Initialise game window
-frame_size_x = 720
-frame_size_y = 480
+Screen_Width = 720
+Screen_Height = 480
 
-myScreen = pygame.display.set_mode((frame_size_x, frame_size_y))
+myScreen = pygame.display.set_mode((Screen_Width, Screen_Height))
 pygame.display.set_caption("Robogeneers Snake")
 
 
@@ -22,14 +22,14 @@ img2 = pygame.image.load("usercode/images/body.png").convert_alpha()
 img_body = pygame.transform.scale(img2, (pSizeX/BODY_SCALE, pSizeY/BODY_SCALE))
 imgRect_body = img_body.get_rect()
 
-img3 = pygame.image.load("usercode/images/food.png").convert_alpha()
-img_food = pygame.transform.scale(img3, (pSizeX, pSizeY))
-imgRect_food = img_food.get_rect()
+img3 = pygame.image.load("usercode/images/gear.png").convert_alpha()
+img_gear = pygame.transform.scale(img3, (pSizeX, pSizeY))
+imgRect_gear = img_gear.get_rect()
 
 img4 = pygame.image.load("usercode/images/gameover.png").convert_alpha()
 img_dead = pygame.transform.scale(img4, (200, 200))
 imgRect_dead = img_dead.get_rect()
-imgRect_dead.midtop = (frame_size_x/2, (frame_size_y)/3)
+imgRect_dead.midtop = (Screen_Width/2, (Screen_Height)/3)
 
 
 # Initialise game
@@ -42,7 +42,7 @@ else:
 
 
 # Initialise game window object
-game_window = pygame.display.set_mode((frame_size_x, frame_size_y))
+game_window = pygame.display.set_mode((Screen_Width, Screen_Height))
 
 
 # Colors (R, G, B)
@@ -59,14 +59,14 @@ fps_controller = pygame.time.Clock()
 
 
 # Game variables
-snake_pos = [100, 50]
-snake_body = [[0, 50], [100-10, 50], [100-(2*10), 50]]
+robot_loc = [100, 50]
+body = [[0, 50], [100-10, 50], [100-(2*10), 50]]
 
-food_pos = [random.randrange(1, (frame_size_x//10)) * 10, random.randrange(1, (frame_size_y//10)) * 10]
-food_spawn = True
+gear_loc = [random.randrange(1, (Screen_Width//10)) * 10, random.randrange(1, (Screen_Height//10)) * 10]
+gear_spawn = True
 
 direction = 'RIGHT'
-change_to = direction
+next_direction = direction
 
 score = 0
 start_speed = 15
@@ -77,7 +77,7 @@ def game_over():
     my_font = pygame.font.SysFont('Comic sans', 90)
     game_over_surface = my_font.render('GAME OVER', True, black)
     game_over_rect = game_over_surface.get_rect()
-    game_over_rect.midtop = (frame_size_x/2, frame_size_y/8)
+    game_over_rect.midtop = (Screen_Width/2, Screen_Height/8)
     game_window.fill(green)
     game_window.blit(game_over_surface, game_over_rect)
     myScreen.blit(img_dead, imgRect_dead)
@@ -94,11 +94,11 @@ def show_score(choice, color, font, size):
     if choice == 1:
         score_surface = score_font.render(str(score), True, color)
         score_rect = score_surface.get_rect()
-        score_rect.midtop = (frame_size_x/2, frame_size_y/3)
+        score_rect.midtop = (Screen_Width/2, Screen_Height/3)
     else:
         score_surface = score_font.render('Score: ' + str(score), True, color)
         score_rect = score_surface.get_rect()
-        score_rect.midtop = (frame_size_x/2, frame_size_y/1.25)
+        score_rect.midtop = (Screen_Width/2, Screen_Height/1.25)
     game_window.blit(score_surface, score_rect)
     pygame.display.flip()
 
@@ -113,51 +113,50 @@ while True:
             sys.exit()
         # Whenever a key is pressed down
         elif event.type == pygame.KEYDOWN:
-            # W -> Up; S -> Down; A -> Left; D -> Right
-            if event.key == pygame.K_UP or event.key == ord('w'):
-                change_to = 'UP'
-            if event.key == pygame.K_DOWN or event.key == ord('s'):
-                change_to = 'DOWN'
-            if event.key == pygame.K_LEFT or event.key == ord('a'):
-                change_to = 'LEFT'
-            if event.key == pygame.K_RIGHT or event.key == ord('d'):
-                change_to = 'RIGHT'
-            # Esc -> Create event to quit the game
+            if event.key == pygame.K_UP:
+                next_direction = 'UP'
+            if event.key == pygame.K_DOWN:
+                next_direction = 'DOWN'
+            if event.key == pygame.K_LEFT:
+                next_direction = 'LEFT'
+            if event.key == pygame.K_RIGHT:
+                next_direction = 'RIGHT'
+            # Quit the game
             if event.key == pygame.K_ESCAPE:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
 
-    # Making sure the snake cannot move in the opposite direction instantaneously
-    if change_to == 'UP' and direction != 'DOWN':
+    # Making sure the robot cannot move in the opposite direction instantaneously
+    if next_direction == 'UP' and direction != 'DOWN':
         direction = 'UP'
-    if change_to == 'DOWN' and direction != 'UP':
+    if next_direction == 'DOWN' and direction != 'UP':
         direction = 'DOWN'
-    if change_to == 'LEFT' and direction != 'RIGHT':
+    if next_direction == 'LEFT' and direction != 'RIGHT':
         direction = 'LEFT'
-    if change_to == 'RIGHT' and direction != 'LEFT':
+    if next_direction == 'RIGHT' and direction != 'LEFT':
         direction = 'RIGHT'
 
-    # Moving the snake
+    # Moving the robot
     if direction == 'UP':
-        snake_pos[1] -= 10
+        robot_loc[1] -= 10
     if direction == 'DOWN':
-        snake_pos[1] += 10
+        robot_loc[1] += 10
     if direction == 'LEFT':
-        snake_pos[0] -= 10
+        robot_loc[0] -= 10
     if direction == 'RIGHT':
-        snake_pos[0] += 10
+        robot_loc[0] += 10
 
-    # Snake body growing mechanism
-    snake_body.insert(0, list(snake_pos))
-    if snake_pos[0] == food_pos[0] and snake_pos[1] == food_pos[1]:
+    # robot body growing mechanism
+    body.insert(0, list(robot_loc))
+    if robot_loc[0] == gear_loc[0] and robot_loc[1] == gear_loc[1]:
         score += 1
-        food_spawn = False
+        gear_spawn = False
     else:
-        snake_body.pop()
+        body.pop()
 
-    # Spawning food on the screen
-    if not food_spawn:
-        food_pos = [random.randrange(1, (frame_size_x//10)) * 10, random.randrange(1, (frame_size_y//10)) * 10]
-    food_spawn = True
+    # Spawning gears on the screen
+    if not gear_spawn:
+        gear_loc = [random.randrange(1, (Screen_Width//10)) * 10, random.randrange(1, (Screen_Height//10)) * 10]
+    gear_spawn = True
 
 
     ## GFX ##
@@ -175,18 +174,18 @@ while True:
     level_font = pygame.font.SysFont('consolas', 20)
     level_surface = level_font.render('Level ' + str(level), True, grey)
     level_rect = level_surface.get_rect()
-    level_rect.midtop = (frame_size_x/2, frame_size_y/1.9)
+    level_rect.midtop = (Screen_Width/2, Screen_Height/1.9)
     game_window.blit(level_surface, level_rect)
 
-    # Food
-    myScreen.blit(img_food, pygame.Rect(food_pos[0], food_pos[1], 10, 10))
+    # Gears
+    myScreen.blit(img_gear, pygame.Rect(gear_loc[0], gear_loc[1], 10, 10))
 
     # Body
-    for pos in snake_body[1:]:
+    for pos in body[1:]:
         myScreen.blit(img_body, pygame.Rect(pos[0] + pSizeX/(2*BODY_SCALE), pos[1] + pSizeY/(2*BODY_SCALE), 10, 10))
 
     # Head
-    head_pos = snake_body[0]
+    head_pos = body[0]
     myScreen.blit(img_head, pygame.Rect(head_pos[0], head_pos[1], 10, 10))
 
     # Update screen
@@ -195,14 +194,14 @@ while True:
 
     ## GAME OVER CONDITIONS ##
     # Getting out of bounds
-    if snake_pos[0] < 0 or snake_pos[0] > frame_size_x-10:
+    if robot_loc[0] < 0 or robot_loc[0] > Screen_Width-10:
         game_over()
-    if snake_pos[1] < 0 or snake_pos[1] > frame_size_y-10:
+    if robot_loc[1] < 0 or robot_loc[1] > Screen_Height-10:
         game_over()
 
-    # Touching the snake body
-    for block in snake_body[1:]:
-        if snake_pos[0] == block[0] and snake_pos[1] == block[1]:
+    # Touching the robot body
+    for block in body[1:]:
+        if robot_loc[0] == block[0] and robot_loc[1] == block[1]:
             game_over()
     
 
@@ -213,15 +212,3 @@ while True:
     # Refresh rate
     difficulty = start_speed + (level - 1) * 5
     fps_controller.tick(difficulty)
-
-
-
-
-## UNUSED CODE ##
-    # pygame.draw.rect(game_window, white, pygame.Rect(food_pos[0], food_pos[1], 10, 10))
-    # xy-coordinate -> .Rect(x, y, size_x, size_y)
-    # .draw.rect(play_surface, color, xy-coordinate)
-    # pygame.draw.rect(game_window, green, pygame.Rect(pos[0], pos[1], 10, 10))
-    # myScreen.blit(img_head, imgRect_head)
-    # pygame.init() example output -> (6, 0)
-    # second number in tuple gives number of errors
